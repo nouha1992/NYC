@@ -35,12 +35,32 @@ if st.checkbox('Show raw data'):
 #Bar Chart Pickup by Hours
 
 st.subheader('Number of pickups by hour')
-hist_hour = np.histogram(data["pickup_hour"], bins=24, range=(0,24))[0]
+pickup_hour= data["pickup_hour"].unique()
+label_selector= st.slider(
+    'Select the hours you want to check',
+    min_value=0, max_value=23, value=(0, 1))
+start,end= label_selector
+start= int(start)
+end= int(end)
+data['pickup_hour']= data['pickup_hour'].astype('int32')
+# st.text(data['pickup_hour'].dtypes)
+data_hour= data[(data['pickup_hour']>= start)& (data['pickup_hour']<= end)]
+hist_hour = np.histogram(data_hour['pickup_hour'], bins=24, range=(0,24))[0]
 st.bar_chart(hist_hour)
 
 # Pyplot Pickups by Weeks
-st.subheader('Number of pickups by week')
-hist_week = data["day_of_week"]
+st.subheader('Number of pickups by week day')
+data['day_of_week']= data['day_of_week'].astype('int32')
+
+days_list= data["day_of_week"].unique()
+day_multi= st.multiselect('kindly add days you want to check:',
+             options= days_list)
+# st.write(data['day_of_week'])
+hist_week=pd.DataFrame()
+for i in day_multi:
+    hist_week = data[data["day_of_week"]== i]['day_of_week']
+# st.write(hist_week)
+# st.write(type(day_multi))
 fig, ax = plt.subplots()
 ax.hist(hist_week, bins=7, range=(0,7))[0]
 st.pyplot(fig)
@@ -56,10 +76,10 @@ hist_month = np.histogram(data["pickup_month"], bins=12, range=(0,12))[0]
 st.line_chart(hist_month)
 
 #Plotly Charts
+
 st.subheader('Trips Amounts')
+
 hist_data= [data["tip_amount"], data["total_amount"], data["fare_amount"]]
 group_labels = ['Tips Amount', 'Total Amount', 'Fare Amount']
 fig = ff.create_distplot(hist_data, group_labels, bin_size=[.1, .25, 0.5])
 st.plotly_chart(fig, use_container_width=True)
-
-
